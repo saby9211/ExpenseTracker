@@ -1,15 +1,17 @@
-// Determine API base URL
-let API_BASE = import.meta.env.VITE_API_URL;
-
-// If not set by environment variable, detect based on hostname
-if (!API_BASE) {
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        API_BASE = '/api'; // Use proxy for local development
-    } else {
-        // Production deployment
-        API_BASE = 'https://expense-tracker-sri4.onrender.com/api';
+// Determine API base URL - hardcode for production, use proxy for local dev
+const getAPIBase = () => {
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+    
+    // Local development - use proxy
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return '/api';
     }
-}
+    
+    // Production - use absolute URL
+    return 'https://expense-tracker-sri4.onrender.com/api';
+};
+
+const API_BASE = getAPIBase();
 
 export async function register(name, email, password) {
     const res = await fetch(`${API_BASE}/auth/register`, {
