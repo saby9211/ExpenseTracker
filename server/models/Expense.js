@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 
 const expenseSchema = new mongoose.Schema(
     {
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
         amount: {
             type: mongoose.Types.Decimal128,
             required: [true, 'Amount is required'],

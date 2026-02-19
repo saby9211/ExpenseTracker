@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Expense = require('../models/Expense');
 const { validateExpense, handleValidationErrors } = require('../validators/expense');
+const auth = require('../middleware/auth');
+
+// Apply auth middleware to all expense routes
+router.use(auth);
 
 // POST /api/expenses — Create a new expense
 router.post('/', validateExpense, handleValidationErrors, async (req, res, next) => {
@@ -10,13 +14,14 @@ router.post('/', validateExpense, handleValidationErrors, async (req, res, next)
 
         // Idempotency: if a key is provided, check for existing expense
         if (idempotencyKey) {
-            const existing = await Expense.findOne({ idempotencyKey });
+            const existing = await Expense.findOne({ idempotencyKey, user: req.user });
             if (existing) {
                 return res.status(200).json(existing.toJSON());
             }
         }
 
         const expense = new Expense({
+            user: req.user,
             amount,
             category,
             description: description || '',
@@ -42,7 +47,7 @@ router.post('/', validateExpense, handleValidationErrors, async (req, res, next)
 router.get('/', async (req, res, next) => {
     try {
         const { category, sort } = req.query;
-        const filter = {};
+        const filter = { user: req.user };
 
         if (category) {
             filter.category = category;

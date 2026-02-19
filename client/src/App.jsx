@@ -3,9 +3,12 @@ import ExpenseForm from './components/ExpenseForm';
 import ExpenseList from './components/ExpenseList';
 import ExpenseFilter from './components/ExpenseFilter';
 import CategorySummary from './components/CategorySummary';
+import AuthPage from './components/AuthPage';
 import { fetchExpenses } from './api/expenses';
+import { getStoredUser, logout as logoutUser } from './api/auth';
 
 function App() {
+  const [user, setUser] = useState(() => getStoredUser());
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -26,8 +29,25 @@ function App() {
   }, [category, sort]);
 
   useEffect(() => {
-    loadExpenses();
-  }, [loadExpenses]);
+    if (user) {
+      loadExpenses();
+    }
+  }, [user, loadExpenses]);
+
+  const handleAuthSuccess = (userData) => {
+    setUser(userData);
+  };
+
+  const handleLogout = () => {
+    logoutUser();
+    setUser(null);
+    setExpenses([]);
+    setError('');
+  };
+
+  if (!user) {
+    return <AuthPage onAuthSuccess={handleAuthSuccess} />;
+  }
 
   return (
     <div className="app">
@@ -35,6 +55,12 @@ function App() {
         <div className="header-content">
           <h1>💰 Expense Tracker</h1>
           <p className="header-subtitle">Track, manage, and understand your spending</p>
+        </div>
+        <div className="header-user">
+          <span className="user-name">{user.name}</span>
+          <button className="btn-logout" onClick={handleLogout}>
+            Logout
+          </button>
         </div>
       </header>
 

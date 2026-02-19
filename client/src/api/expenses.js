@@ -1,4 +1,15 @@
+import { getToken } from './auth';
+
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
+function authHeaders() {
+    const token = getToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+}
 
 export async function fetchExpenses({ category = '', sort = 'date_desc' } = {}) {
     const params = new URLSearchParams();
@@ -6,7 +17,9 @@ export async function fetchExpenses({ category = '', sort = 'date_desc' } = {}) 
     if (sort) params.set('sort', sort);
 
     const url = `${API_BASE}/expenses${params.toString() ? '?' + params.toString() : ''}`;
-    const res = await fetch(url);
+    const res = await fetch(url, {
+        headers: authHeaders(),
+    });
 
     if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -19,7 +32,7 @@ export async function fetchExpenses({ category = '', sort = 'date_desc' } = {}) 
 export async function createExpense({ amount, category, description, date, idempotencyKey }) {
     const res = await fetch(`${API_BASE}/expenses`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ amount, category, description, date, idempotencyKey }),
     });
 
